@@ -1,7 +1,7 @@
 <launch>
   <node name="lcd_node" pkg="lcd_pkg" type="lcd_node"  output="screen" />
     
-  <node pkg="rosbag" type="play" name="bag_player" args="$(env HOME)/lcd_ws/bags/cartographer_2019-07-09-23-36-38.bag"/>
+  <node pkg="rosbag" type="play" name="bag_player" args="$(find lcd_pkg)/../../bags/cartographer_2019-07-09-23-36-38.bag"/>
 
   <node type="rviz" name="rviz" pkg="rviz" args="-d $(find lcd_pkg)/rviz/rviz_config.rviz" />
 </launch>
