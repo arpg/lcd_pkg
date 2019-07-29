@@ -1,8 +1,10 @@
 #include "ros/ros.h"
 #include "ros/package.h"
-#include "visualization_msgs/MarkerArray.h"
+#include "cartographer_ros_msgs/TrajectoryQuery.h"
 #include "geometry_msgs/Point.h"
+#include "geometry_msgs/PoseStamped.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/Int32.h"
 #include "math.h"
 #include <iostream>
 #include <fstream>
@@ -10,19 +12,11 @@
 
 using namespace std;
 
-class point
-{
-public:
-float x;
-float y;
-float z;
-};
-
-int arraySize_param = -1;
-double mseThreshold_param = -1;
+int arraySize_param = 10;
+double mseThreshold_param = 0.1;
 ofstream lout;
 
-void trajCb(const visualization_msgs::MarkerArray&);
+void trajCb(const vector<geometry_msgs::PoseStamped>&);
 float mse(vector<geometry_msgs::Point>&, vector<geometry_msgs::Point>&);
 int sc(vector<geometry_msgs::Point>&, vector<geometry_msgs::Point>&);
 int zc(vector<geometry_msgs::Point>&);
@@ -32,10 +26,10 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "lcd_node");
 
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
 
-  ros::Publisher loopClosurePub = n.advertise<std_msgs::Bool>("isLoopClosed", 100); 
-  ros::Subscriber markerArraySub = n.subscribe("trajectory_node_list", 100, trajCb);
+  ros::Publisher loopClosurePub = nh.advertise<std_msgs::Int32>("number_of_loop_closures", 100); 
+  ros::ServiceClient client = nh.serviceClient<cartographer_ros_msgs::TrajectoryQuery>("trajectory_query");
   
   while(arraySize_param == -1 || mseThreshold_param == -1)
   {
@@ -49,14 +43,40 @@ int main(int argc, char **argv)
   lout << "arraySize_param = " << arraySize_param << endl;
   lout << "mseThreshold_param = " << mseThreshold_param << endl << endl;
   
-  ros::spin();
+  cartographer_ros_msgs::TrajectoryQuery srv;
+  srv.request.trajectory_id = 0;
+
+	ros::Rate loop_rate(200);
+	
+	while(ros::ok())
+	{
+		if (client.call(srv))
+		{
+			cout << "Trajectory status = " << srv.response.status.message << endl; 
+		  cout << "Trajectory size = " << srv.response.trajectory.size() << endl;
+		  cout << "Current Odometry: position (" << srv.response.trajectory.back().pose.position.x << ", "
+		  																			 << srv.response.trajectory.back().pose.position.y << ", "
+		  																			 << srv.response.trajectory.back().pose.position.z << ") "
+		  									 << " orientation (" << srv.response.trajectory.back().pose.orientation.x << ", "
+		  									  									 << srv.response.trajectory.back().pose.orientation.y << ", "
+		  									  									 << srv.response.trajectory.back().pose.orientation.z << ", "
+		  									  									 << srv.response.trajectory.back().pose.orientation.w << ")" << endl;
+ 		  trajCb(srv.response.trajectory);
+		  cout << "-----------------------------------" <<endl;
+		}
+		else
+		ROS_ERROR("Failed to call service 'trajectory_query'");
+		
+		loop_rate.sleep();
+  }
 
   return 0;
 }
 
-void trajCb(const visualization_msgs::MarkerArray& msg)
+void trajCb(const vector<geometry_msgs::PoseStamped>& msg)
 {
-
+	static bool isPopulated_prevTruncatedArray = false;
+	
 	const int truncatedArraySize = arraySize_param; // Number of array elements to compare
 	const float mseThreshold = mseThreshold_param; // Mean square error threshold between two arrays to declare dissimilarilty
 	
@@ -64,11 +84,13 @@ void trajCb(const visualization_msgs::MarkerArray& msg)
 	
 	static vector<geometry_msgs::Point> prevTruncatedArray(truncatedArraySize); // truncatedArraySize number of elements of the previous input array
 	
-	int newInputArraySize = msg.markers[2].points.size(); // New input array size
+	int newInputArraySize = msg.size(); // New input array size
+	
+	int nNewPoses = newInputArraySize - prevInputArraySize; // Difference in arrays lengths
 	
 	vector<geometry_msgs::Point> newTruncatedArray(truncatedArraySize); // truncatedArraySize number of elements of the new input array
 	
-	lout << "newInputArraySize: " << newInputArraySize << ", truncatedArraySize: " << truncatedArraySize << ", prevInputArraySize: " << prevInputArraySize << endl;
+	lout << "prevInputArraySize: " << prevInputArraySize << ", newInputArraySize: " << newInputArraySize << ", truncatedArraySize: " << truncatedArraySize << endl;
 	
 	if(newInputArraySize < truncatedArraySize || newInputArraySize <= prevInputArraySize)
 	{
@@ -76,44 +98,60 @@ void trajCb(const visualization_msgs::MarkerArray& msg)
 	//ROS_INFO("Waiting to accumulate enough points");
 	return;
 	}
-	prevInputArraySize = newInputArraySize;
 	
 	int count = 0;
-	for (int i = newInputArraySize-truncatedArraySize-1; i < newInputArraySize-1; i++)
+	
+	if(prevInputArraySize > 0 && isPopulated_prevTruncatedArray)
 	{
-	newTruncatedArray[count] = msg.markers[2].points[i];
-	count ++;
+		count = 0;
+		for (int i = newInputArraySize-truncatedArraySize-nNewPoses; i < newInputArraySize-nNewPoses; i++)
+		{
+			newTruncatedArray[count].x = msg[i].pose.position.x;
+			newTruncatedArray[count].y = msg[i].pose.position.y;
+			newTruncatedArray[count].z = msg[i].pose.position.z;
+			count ++;
+		}
+		
+		float meanSquareError = mse(prevTruncatedArray, newTruncatedArray);
+		int zeroCount = zc(prevTruncatedArray);
+		int similarityCount = sc(prevTruncatedArray, newTruncatedArray);	
+
+		lout << "---------------------------------------" << endl;
+		lout << "Mean Square Error = " << meanSquareError;
+		lout << " - Zero Count = " << zeroCount;
+		lout << " - Similarity Count = " << similarityCount << endl;
+		lout << "---------------------------------------" << endl;
+		
+		cout << "---------------------------------------" << endl;
+		cout << "Mean Square Error = " << meanSquareError;
+		cout << " - Zero Count = " << zeroCount;
+		cout << " - Similarity Count = " << similarityCount << endl;
+		cout << "---------------------------------------" << endl;
+		
+		if(meanSquareError > mseThreshold)
+		{
+			lout << "Loop Closure Detected" << endl;
+			cout << "Loop Closure Detected" << endl;
+			//getchar();
+		}
 	}
 	
-	float meanSquareError = mse(prevTruncatedArray, newTruncatedArray);
-	int zeroCount = zc(prevTruncatedArray);
-	int similarityCount = sc(prevTruncatedArray, newTruncatedArray);
-	
+	lout << "Updating static variables for the next callback" << endl;
 	count = 0;
 	for (int i = newInputArraySize-truncatedArraySize; i < newInputArraySize; i++)
 	{
-	prevTruncatedArray[count] = msg.markers[2].points[i];
-	count ++;
+		
+		prevTruncatedArray[count].x = msg[i].pose.position.x;
+		prevTruncatedArray[count].y = msg[i].pose.position.y;
+		prevTruncatedArray[count].z = msg[i].pose.position.z;
+		
+		count ++;
 	}
-	
-	lout << "---------------------------------------" << endl;
-	lout << "Mean Square Error = " << meanSquareError;
-	lout << " - Zero Count = " << zeroCount;
-	lout << " - Similarity Count = " << similarityCount << endl;
-	lout << "---------------------------------------" << endl;
-	
-	cout << "---------------------------------------" << endl;
-	cout << "Mean Square Error = " << meanSquareError;
-	cout << " - Zero Count = " << zeroCount;
-	cout << " - Similarity Count = " << similarityCount << endl;
-	cout << "---------------------------------------" << endl;
-	
-	if(meanSquareError > mseThreshold && zeroCount < truncatedArraySize)
-	{
-	lout << "Loop Closure Detected" << endl;
-	cout << "Loop Closure Detected" << endl;
-	//getchar();
-	}
+	isPopulated_prevTruncatedArray = true;
+	lout << "prevTruncatedArray populated" << endl;
+	prevInputArraySize = newInputArraySize;
+	lout << "prevInputArraySize reset to newInputArraySize" << endl;
+	lout << "<====================================>" << endl << endl;
 }
 
 float mse(vector<geometry_msgs::Point>& array1, vector<geometry_msgs::Point>& array2)

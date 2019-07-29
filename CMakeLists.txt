@@ -8,6 +8,8 @@ project(lcd_pkg)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+	cartographer_ros
+  cartographer_ros_msgs
   geometry_msgs
   nav_msgs
   roscpp
@@ -16,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   roslib
 )
+find_package(cartographer)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
