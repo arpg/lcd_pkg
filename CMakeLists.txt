@@ -17,6 +17,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   visualization_msgs
   roslib
+  message_generation
+  marble_artifact_detection_msgs
+  tf
 )
 find_package(cartographer)
 
@@ -54,11 +57,12 @@ find_package(cartographer)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(
+   FILES
+   Artifact.msg
+   ArtifactStamped.msg
+   poseGraph.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -75,10 +79,12 @@ find_package(cartographer)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
+ generate_messages(
+   DEPENDENCIES
+   geometry_msgs
+   roscpp
 #   geometry_msgs#   nav_msgs#   std_msgs#   visualization_msgs
-# )
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -112,7 +118,7 @@ find_package(cartographer)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES lcd_pkg
-#  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs visualization_msgs
+  CATKIN_DEPENDS geometry_msgs roscpp message_runtime
 #  DEPENDS system_lib
 )
 
