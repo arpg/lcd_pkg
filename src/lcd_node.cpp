@@ -2,7 +2,7 @@
 #include "ros/package.h"
 #include "cartographer_ros_msgs/TrajectoryQuery.h"
 #include "geometry_msgs/Point.h"
-#include "lcd_pkg/poseGraph.h"
+#include "lcd_pkg/PoseGraph.h"
 #include "std_msgs/UInt32.h"
 #include "math.h"
 #include <iostream>
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
   ros::NodeHandle nh;
 
-	poseGraphPub = nh.advertise<lcd_pkg::poseGraph>("pose_graph", 100);
+	poseGraphPub = nh.advertise<lcd_pkg::PoseGraph>("pose_graph", 100);
   ros::ServiceClient client = nh.serviceClient<cartographer_ros_msgs::TrajectoryQuery>("trajectory_query");
   
   while(arraySize_param == -1 || mseThreshold_param == -1 || publish_rate == -1)
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
   ROS_INFO("Waiting for Parameters");
   }
   
-  initializeLogs("lcd_pkg", "lcd_logs.txt");
+  initializeLogs("lcd_pkg", "lcd_node_logs.txt");
   lout << "arraySize_param = " << arraySize_param << endl;
   lout << "mseThreshold_param = " << mseThreshold_param << endl;
   lout << "publish_rate = " << publish_rate << endl << endl;
@@ -91,11 +91,11 @@ void trajCb(const vector<geometry_msgs::PoseStamped>& msg)
 	const int truncatedArraySize = arraySize_param; // Number of array elements to compare
 	const float mseThreshold = mseThreshold_param; // Mean square error threshold between two arrays to declare dissimilarilty
 	
-	static int prevInputArraySize = 0; // Previous input array size
+	static uint32_t prevInputArraySize = 0; // Previous input array size
 	
 	static vector<geometry_msgs::Point> prevTruncatedArray(truncatedArraySize); // truncatedArraySize number of elements of the previous input array
 	
-	int newInputArraySize = msg.size(); // New input array size
+	uint32_t newInputArraySize = msg.size(); // New input array size
 	
 	int nNewPoses = newInputArraySize - prevInputArraySize; // Difference in arrays lengths
 	
@@ -165,7 +165,7 @@ void trajCb(const vector<geometry_msgs::PoseStamped>& msg)
 	lout << "prevInputArraySize reset to newInputArraySize" << endl;
 	
 	lout << "Publishing number of loop closures and the recent pose array" << endl;
-	lcd_pkg::poseGraph poseGraph;
+	lcd_pkg::PoseGraph poseGraph;
 	poseGraph.nLoopClosures = nLoopClosures;
 	poseGraph.poseArray = msg;
 	poseGraphPub.publish(poseGraph);

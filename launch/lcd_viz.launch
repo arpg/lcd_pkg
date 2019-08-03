@@ -1,5 +1,5 @@
 <launch>
-  <node name="lcd_node" pkg="lcd_pkg" type="lcd_node"  output="screen" >
+  <node name="lcd_viz_node" pkg="lcd_pkg" type="lcd_viz_node"  output="screen" >
   
   <param name = "arraySize_param" type = "int" value="80"/>
   <param name = "mseThreshold_param" type = "double" value="0.002"/>
@@ -7,9 +7,11 @@
   
   </node>
   
-  <node name="artifact_update_node" pkg="lcd_pkg" type="artifact_update_node"  output="screen" >
+  <node name="lcd_node" pkg="lcd_pkg" type="lcd_node"  output="screen" >
   
-  <param name = "simRadius_param" type = "double" value="2"/>
+  <param name = "arraySize_param" type = "int" value="80"/>
+  <param name = "mseThreshold_param" type = "double" value="0.002"/>
+  <param name = "publish_rate" type = "double" value="10"/>
   
   </node>
     
@@ -21,6 +23,4 @@
 
 <!-- arraySize_param: Number of previous trajectory points maintained for comparison -->
 <!-- mseThreshold_param: Mean square error threshold for similarity metric -->
-
-<!-- simRadius_param: If two artifacts are simRadius_param close to each other after loop closure then the second one in the marble_artifact_detection_msgs/ArtifactArray is removed  -->
 

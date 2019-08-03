@@ -61,7 +61,7 @@ find_package(cartographer)
    FILES
    Artifact.msg
    ArtifactStamped.msg
-   poseGraph.msg
+   PoseGraph.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -147,6 +147,8 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(lcd_node src/lcd_node.cpp)
+ add_executable(artifact_update_node src/artifact_update_node.cpp)
+ add_executable(lcd_viz_node src/lcd_viz_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -159,7 +161,18 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(lcd_node
+ target_link_libraries(
+ 	 lcd_node
+   ${catkin_LIBRARIES}
+)
+
+ target_link_libraries(
+ 	 lcd_viz_node
+   ${catkin_LIBRARIES}
+)
+
+	target_link_libraries(
+ 	 artifact_update_node
    ${catkin_LIBRARIES}
 )
 

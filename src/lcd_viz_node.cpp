@@ -30,7 +30,7 @@ void initializeLogs(string, string);
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "lcd_node");
+  ros::init(argc, argv, "lcd_viz_node");
 
   ros::NodeHandle n;
 
@@ -39,8 +39,8 @@ int main(int argc, char **argv)
   
   while(arraySize_param == -1 || mseThreshold_param == -1)
   {
-  ros::param::get("lcd_node/arraySize_param", arraySize_param);
-  ros::param::get("lcd_node/mseThreshold_param", mseThreshold_param);
+  ros::param::get("lcd_viz_node/arraySize_param", arraySize_param);
+  ros::param::get("lcd_viz_node/mseThreshold_param", mseThreshold_param);
   
   ROS_INFO("Waiting for Parameters");
   }
