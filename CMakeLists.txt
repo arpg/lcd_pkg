@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   roslib
   message_generation
-  marble_artifact_detection_msgs
+  #  marble_artifact_detection_msgs
   tf
 )
 find_package(cartographer)
@@ -59,8 +59,8 @@ find_package(cartographer)
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   Artifact.msg
-   ArtifactStamped.msg
+   #Artifact.msg
+   #ArtifactStamped.msg
    PoseGraph.msg
  )
 
@@ -147,8 +147,8 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(lcd_node src/lcd_node.cpp)
- add_executable(artifact_update_node src/artifact_update_node.cpp)
- add_executable(lcd_viz_node src/lcd_viz_node.cpp)
+ # add_executable(artifact_update_node src/artifact_update_node.cpp)
+ #add_executable(lcd_viz_node src/lcd_viz_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -166,15 +166,15 @@ include_directories(
    ${catkin_LIBRARIES}
 )
 
- target_link_libraries(
- 	 lcd_viz_node
-   ${catkin_LIBRARIES}
-)
+# target_link_libraries(
+# 	 lcd_viz_node
+#   ${catkin_LIBRARIES}
+#)
 
-	target_link_libraries(
- 	 artifact_update_node
-   ${catkin_LIBRARIES}
-)
+#	target_link_libraries(
+# 	 artifact_update_node
+#   ${catkin_LIBRARIES}
+#)
 
 #############
 ## Install ##
