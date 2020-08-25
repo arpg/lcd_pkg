@@ -165,7 +165,7 @@ include_directories(
  	 lcd_node
    ${catkin_LIBRARIES}
 )
-
+add_dependencies(lcd_node ${PROJECT_NAME}_generate_messages_cpp)
 # target_link_libraries(
 # 	 lcd_viz_node
 #   ${catkin_LIBRARIES}
