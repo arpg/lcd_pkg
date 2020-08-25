@@ -1,0 +1,26 @@
+<launch>
+  <node name="lcd_viz_node" pkg="lcd_pkg" type="lcd_viz_node"  output="screen" >
+  
+  <param name = "arraySize_param" type = "int" value="80"/>
+  <param name = "mseThreshold_param" type = "double" value="0.002"/>
+  <param name = "publish_rate" type = "double" value="10"/>
+  
+  </node>
+  
+  <node name="lcd_node" pkg="lcd_pkg" type="lcd_node"  output="screen" >
+  
+  <param name = "arraySize_param" type = "int" value="80"/>
+  <param name = "mseThreshold_param" type = "double" value="0.002"/>
+  <param name = "publish_rate" type = "double" value="10"/>
+  
+  </node>
+    
+  <!-- <node pkg="rosbag" type="play" name="bag_player" args="$(find lcd_pkg)/../../bags/EDGAR_TESTING_2_2019_08_01/edgar_testing_1_output_2019-07-31-15-50-18_0.bag"/>
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find lcd_pkg)/rviz/lcd_viz.rviz" /> -->
+</launch>
+
+
+<!-- arraySize_param: Number of previous trajectory points maintained for comparison -->
+<!-- mseThreshold_param: Mean square error threshold for similarity metric -->
+
