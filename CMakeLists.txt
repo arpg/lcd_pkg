@@ -149,6 +149,7 @@ include_directories(
  add_executable(lcd_node src/lcd_node.cpp)
  # add_executable(artifact_update_node src/artifact_update_node.cpp)
  #add_executable(lcd_viz_node src/lcd_viz_node.cpp)
+ add_dependencies(lcd_node ${catkin_EXPORTED_TARGETS})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
